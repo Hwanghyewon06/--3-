@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>엔진 테스트</title>
+<style>body{font:15px/1.5 system-ui,"Malgun Gothic",sans-serif;padding:16px}.ok{color:#1b5e20}.bad{color:#b3261e;font-weight:700}</style>
+</head>
+<body>
+<h1>엔진 테스트</h1>
+<p id="summary">실행 중…</p>
+<ul id="list"></ul>
+<script src="engine.js"></script>
+<script>
+(function () {
+  var E = window.Engine, results = [];
+  function test(name, fn) {
+    try { fn(); results.push([name, true, ""]); }
+    catch (e) { results.push([name, false, String(e && e.message || e)]); }
+  }
+  function eq(a, b, m) {
+    var x = JSON.stringify(a), y = JSON.stringify(b);
+    if (x !== y) throw new Error((m || "값이 달라요") + ": " + x + " ≠ " + y);
+  }
+  function truthy(v, m) { if (!v) throw new Error(m || "거짓"); }
+  function titles(ts) { return ts.map(function (t) { return t.title; }); }
+  function samples() { var b = new E.Board(); E.fillSamples(b); return b; }
+  function byTitle(b, t) { return b.tasks.filter(function (x) { return x.title === t; })[0]; }
+
+  test("예시 5개: TOP3 순서와 라벨", function () {
+    var b = new E.Board(); eq(E.fillSamples(b), 5);
+    var top = b.top3();
+    eq(titles(top), ["내일 마감 과제·보고서 끝내기", "병원·은행 예약 전화하기", "공과금·카드값 납부하기"]);
+    eq(top.map(E.labelOf), [E.LABEL_URGENT, E.LABEL_IMPORTANT, E.LABEL_MUST]);
+    eq(E.labelOf({ urgency: 3, importance: 3 }), null);    // 둘 다 3점 이하: 배지 없음
+    eq(E.labelOf({ urgency: 2, importance: 4 }), E.LABEL_IMPORTANT);
+    eq(E.labelOf({ urgency: 4, importance: 3 }), E.LABEL_MUST);
+    eq(titles(b.waiting()), ["장보고 저녁 준비하기", "빨래·방 정리하기"]);
+  });
+  test("예시를 두 번 눌러도 중복되지 않음", function () {
+    var b = samples(); eq(E.fillSamples(b), 0); eq(b.tasks.length, 5);
+  });
+  test("동점: 긴급도 → 먼저 입력한 순", function () {
+    var b = new E.Board(); b.add("A", 5, 3); b.add("B", 3, 5); b.add("C", 4, 4); b.add("D", 4, 4);
+    eq(titles(b.ranked()), ["A", "C", "D", "B"]);
+  });
+  test("동점 이유 문구: 긴급 5+중요 3 vs 긴급 3+중요 5, 핀은 항상 먼저", function () {
+    var b = new E.Board(); b.add("급한 일", 5, 3); b.add("중요한 일", 3, 5);
+    eq(titles(b.ranked()), ["급한 일", "중요한 일"]);
+    truthy(b.reason(byTitle(b, "급한 일")).indexOf("더 급한 일이 먼저") > 0, "동점 이유");
+    truthy(b.reason(byTitle(b, "중요한 일")).indexOf("더 급한 일이 먼저") < 0, "뒤 항목엔 없음");
+    b.setPin(byTitle(b, "중요한 일").id, true);
+    eq(titles(b.ranked()), ["중요한 일", "급한 일"]);
+  });
+  test("점수·긴급도 모두 같으면 등록 순 → 나중 항목을 핀으로 1순위로 올리기", function () {
+    var b = new E.Board(); b.add("회의 자료 준비", 4, 3); b.add("영수증·경비 처리", 4, 3);
+    eq(titles(b.ranked()), ["회의 자료 준비", "영수증·경비 처리"]);
+    var second = byTitle(b, "영수증·경비 처리");
+    truthy(b.setPin(second.id, true));
+    eq(titles(b.ranked()), ["영수증·경비 처리", "회의 자료 준비"]);
+    eq(b.reason(second).indexOf("내가 직접 고정") === 0, true);
+    b.setPin(second.id, false);                       // 핀 해제 → 다시 등록 순
+    eq(titles(b.ranked()), ["회의 자료 준비", "영수증·경비 처리"]);
+    b.setPin(second.id, true); b.toggleDone(second.id); // 핀 항목 완료 → 핀 해제, 자리 유지
+    eq(titles(b.top3())[0], "영수증·경비 처리");
+  });
+  test("핀 항목을 완료하면 핀 해제, TOP 3 자리는 유지", function () {
+    var b = samples(); var low = byTitle(b, "빨래·방 정리하기");
+    b.setPin(low.id, true); b.toggleDone(low.id);
+    eq(low.pinned, false); eq(low.done, true);
+    eq(b.top3()[0].title, "빨래·방 정리하기");
+    eq(b.progress().done, 1);
+    var b2 = E.Board.fromJSON(b.toJSON()); eq(b2.top3()[0].title, "빨래·방 정리하기");
+  });
+  test("핀: 낮은 점수도 1순위, 항상 1개만", function () {
+    var b = samples(); var low = byTitle(b, "빨래·방 정리하기");
+    truthy(b.setPin(low.id, true));
+    eq(b.top3()[0].title, "빨래·방 정리하기");
+    eq(b.top3().length, 3);
+    truthy(titles(b.top3()).indexOf("공과금·카드값 납부하기") < 0, "3번째가 밀려나야 함");
+    var other = b.tasks[0]; b.setPin(other.id, true);
+    eq(b.tasks.filter(function (t) { return t.pinned; }).length, 1);
+    eq(b.top3()[0].id, other.id);
+    b.setPin(other.id, false);
+    eq(b.top3()[0].title, "내일 마감 과제·보고서 끝내기");
+    eq(b.setPin(99999, true), false);
+  });
+  test("완료율 0→33→66→100, 완료해도 순위 유지", function () {
+    var b = samples(); eq(b.progress(), { done: 0, total: 3, pct: 0 });
+    var top = b.top3(), out = [];
+    top.forEach(function (t) {
+      b.toggleDone(t.id); out.push(b.progress().pct);
+      eq(titles(b.top3()), titles(top));
+    });
+    eq(out, [33, 66, 100]);
+    eq(b.toggleDone(top[0].id), false); eq(b.progress().pct, 66);
+  });
+  test("후보 3개 미만에서도 안전", function () {
+    var b = new E.Board();
+    eq(b.progress(), { done: 0, total: 0, pct: 0 }); eq(b.top3(), []);
+    truthy(b.notice().indexOf("추가") >= 0);
+    b.add("하나", 3, 3);
+    eq(b.progress().total, 1); truthy(b.notice().indexOf("더 넣으면") >= 0);
+    b.toggleDone(b.tasks[0].id); eq(b.progress(), { done: 1, total: 1, pct: 100 });
+  });
+  test("잘못된 입력은 안내문과 함께 거절", function () {
+    var bad = [["", 3, 3], ["   ", 3, 3], [null, 3, 3], [123, 3, 3], [undefined, 3, 3], [{}, 3, 3], ["ok", 0, 3], ["ok", 6, 3],
+      ["ok", 3, null], ["ok", "abc", 3], ["ok", true, 3], ["ok", 2.5, 3], ["ok", NaN, 3], ["ok", Infinity, 3],
+      ["가".repeat(61), 3, 3], ["\u0000\u0000", 3, 3], ["ok", [], 3], ["ok", {}, 3]];
+    bad.forEach(function (a) {
+      var b = new E.Board(), r = b.add(a[0], a[1], a[2]);
+      truthy(!r.ok && r.msg && b.tasks.length === 0, "거절되지 않음: " + JSON.stringify(a));
+    });
+  });
+  test("경계 입력은 허용", function () {
+    var b = new E.Board();
+    [["가".repeat(60), 1, 1], ["  공백   많은   이름 ", "5", "5"], ["😀 이모지", 3, 3], ["English Task", 2, 4], ["😀".repeat(60), 3, 3]]
+      .forEach(function (a) { truthy(b.add(a[0], a[1], a[2]).ok, JSON.stringify(a)); });
+    eq(b.tasks[1].title, "공백 많은 이름"); eq(b.tasks[1].urgency, 5);
+    truthy(!b.add("😀".repeat(61), 3, 3).ok);
+  });
+  test("중복(대소문자 무시)·개수 상한", function () {
+    var b = new E.Board(); truthy(b.add("Study", 3, 3).ok);
+    var r = b.add("  study ", 3, 3); truthy(!r.ok && r.msg.indexOf("이미") >= 0);
+    for (var n = 0; n < E.MAX_TASKS - 1; n++) truthy(b.add("t" + n, 3, 3).ok);
+    r = b.add("overflow", 3, 3); truthy(!r.ok && r.msg.indexOf("너무 많") >= 0);
+  });
+  test("삭제·완료 정리·모두 지우기", function () {
+    var b = samples(); b.toggleDone(b.tasks[0].id); b.toggleDone(b.tasks[1].id);
+    eq(b.clearFinished(), 2); eq(b.tasks.length, 3);
+    truthy(b.remove(b.tasks[0].id)); eq(b.remove(424242), false);
+    b.clearAll(); eq(b.tasks.length, 0);
+  });
+  test("저장 왕복(JSON 문자열 경유)과 id 유일", function () {
+    var b = samples(); b.setPin(b.tasks[3].id, true); b.toggleDone(b.tasks[0].id);
+    var c = E.Board.fromJSON(JSON.parse(JSON.stringify(b.toJSON())));
+    eq(titles(c.ranked()), titles(b.ranked()));
+    eq(c.tasks.map(function (t) { return t.done; }), b.tasks.map(function (t) { return t.done; }));
+    truthy(c.add("새 일", 3, 3).ok);
+    var ids = c.tasks.map(function (t) { return t.id; });
+    eq(new Set(ids).size, ids.length);
+  });
+  test("깨진 저장 데이터는 예외 없이 안전하게 처리", function () {
+    var cases = [null, undefined, 5, "x", [], {}, { tasks: "x" }, { tasks: [1, null, "a"] },
+      { tasks: [{ title: "", urgency: 3, importance: 3 }] },
+      { tasks: [{ title: "a", urgency: 9, importance: 3 }] },
+      { tasks: [{ title: "a", urgency: 3, importance: 3, id: "x" }, { title: "A", urgency: 3, importance: 3 }] },
+      { tasks: [{ title: "a", urgency: 3, importance: 3, pinned: true }, { title: "b", urgency: 3, importance: 3, pinned: true }] },
+      { tasks: [{ title: "a", urgency: 3, importance: 3, id: 1 }, { title: "b", urgency: 3, importance: 3, id: 1 }] }];
+    cases.forEach(function (c) {
+      var b = E.Board.fromJSON(c);
+      truthy(b instanceof E.Board);
+      truthy(b.tasks.filter(function (t) { return t.pinned; }).length <= 1, "핀 2개");
+      var ids = b.tasks.map(function (t) { return t.id; });
+      eq(new Set(ids).size, ids.length, "id 중복");
+      b.top3(); b.progress(); b.notice();
+    });
+  });
+  test("설명 문구", function () {
+    var b = samples();
+    truthy(b.reason(b.top3()[0]).indexOf("10점") >= 0);
+    b.setPin(b.tasks[3].id, true); truthy(b.reason(b.tasks[3]).indexOf("고정") >= 0);
+  });
+  test("100개에서도 빠름", function () {
+    var b = new E.Board();
+    for (var n = 0; n < E.MAX_TASKS; n++) b.add("일 " + n, 1 + n % 5, 1 + (n * 3) % 5);
+    var t0 = Date.now();
+    for (var k = 0; k < 200; k++) { b.top3(); b.progress(); }
+    truthy(Date.now() - t0 < 1000, "느림");
+  });
+
+  var fail = results.filter(function (r) { return !r[1]; }).length;
+  var sum = document.getElementById("summary");
+  sum.textContent = "통과 " + (results.length - fail) + " / 실패 " + fail + " (전체 " + results.length + ")";
+  sum.className = fail ? "bad" : "ok";
+  document.title = (fail ? "FAIL " : "PASS ") + (results.length - fail) + "/" + results.length;
+  var ul = document.getElementById("list");
+  results.forEach(function (r) {
+    var li = document.createElement("li");
+    li.textContent = (r[1] ? "✔ " : "✘ ") + r[0] + (r[2] ? " — " + r[2] : "");
+    li.className = r[1] ? "ok" : "bad";
+    ul.appendChild(li);
+  });
+})();
+</script>
+</body>
+</html>

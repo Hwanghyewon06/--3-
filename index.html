@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6fed">
+<meta name="description" content="할 일의 긴급도와 중요도 점수로 오늘 먼저 할 3가지를 골라 주는 체크리스트">
+<title>오늘의 우선순위 딱 3개!</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css?v=7">
+</head>
+<body>
+<noscript><p class="noscript">이 페이지는 JavaScript가 켜져 있어야 동작해요. 브라우저 설정에서 켜 주세요.</p></noscript>
+
+<main class="wrap">
+  <header>
+    <h1>오늘의 우선순위 딱 3개!</h1>
+    <p class="sub">할 일을 적고 긴급도·중요도를 고르면, 점수가 높은 3개를 골라 드려요.</p>
+  </header>
+
+  <section class="card" aria-labelledby="addH">
+    <h2 id="addH" class="sr-only">할 일 추가</h2>
+    <form id="addForm" autocomplete="off" novalidate>
+      <label for="title" class="lbl">할 일</label>
+      <input id="title" name="title" type="text" maxlength="200" placeholder="예) 내일 마감 과제·보고서 끝내기" enterkeyhint="done">
+
+      <div class="quick" id="quick">
+        <button type="button" id="btnTags" class="tagbtn" aria-expanded="true" aria-controls="tagPanel">🏷️ 자주 쓰는 할 일 태그</button>
+        <div id="tagPanel">
+          <p id="quickGuide" class="quick-guide">자주 쓰는 할 일 태그를 눌러 바로 시작해 보세요!</p>
+          <div id="tags" class="tags" role="group" aria-label="자주 쓰는 할 일 태그"></div>
+        </div>
+      </div>
+
+      <fieldset>
+        <legend>긴급도 <small>1 여유 있음 ~ 5 아주 급함</small></legend>
+        <div class="seg">
+          <label><input type="radio" name="urg" value="1"><span>1</span></label>
+          <label><input type="radio" name="urg" value="2"><span>2</span></label>
+          <label><input type="radio" name="urg" value="3" checked><span>3</span></label>
+          <label><input type="radio" name="urg" value="4"><span>4</span></label>
+          <label><input type="radio" name="urg" value="5"><span>5</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>중요도 <small>1 사소함 ~ 5 아주 중요함</small></legend>
+        <div class="seg">
+          <label><input type="radio" name="imp" value="1"><span>1</span></label>
+          <label><input type="radio" name="imp" value="2"><span>2</span></label>
+          <label><input type="radio" name="imp" value="3" checked><span>3</span></label>
+          <label><input type="radio" name="imp" value="4"><span>4</span></label>
+          <label><input type="radio" name="imp" value="5"><span>5</span></label>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="primary">＋ 추가</button>
+    </form>
+    <p id="msg" class="msg" role="status" aria-live="polite"></p>
+  </section>
+
+  <section aria-labelledby="topH">
+    <h2 id="topH">🎯 오늘의 TOP 3</h2>
+    <div class="progress">
+      <div id="progText" class="progress-text"></div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="bar"><div class="fill" id="fill"></div></div>
+    </div>
+    <p id="notice" class="notice"></p>
+    <div id="topList"></div>
+  </section>
+
+  <section id="waitSec" aria-labelledby="waitH" hidden>
+    <h2 id="waitH">대기 중인 후보 <span id="waitCount"></span></h2>
+    <div id="waitList"></div>
+  </section>
+
+  <section class="tools" aria-label="도구">
+    <button type="button" id="btnFinished">완료한 일 정리</button>
+    <button type="button" id="btnClear">모두 지우기</button>
+  </section>
+
+  <p class="hint">💡 다음 날 새로 시작할 땐 각 할 일의 ✕로 하나씩 지우거나, '완료한 일 정리'·'모두 지우기'로 한 번에 비울 수 있어요. 입력한 내용은 자동 저장돼요.</p>
+
+  <footer>
+    <p>입력한 내용은 이 기기의 브라우저에만 저장돼요. 서버로 보내지 않아요.</p>
+    <p>이름, 연락처 같은 실제 개인정보는 적지 마세요.</p>
+  </footer>
+</main>
+
+<script src="engine.js?v=7"></script>
+<script src="app.js?v=7"></script>
+</body>
+</html>

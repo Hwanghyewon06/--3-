@@ -1,0 +1,14 @@
+{
+  "name": "오늘의 우선순위 딱 3개!",
+  "short_name": "딱 3개",
+  "description": "긴급도·중요도 점수로 오늘 먼저 할 3가지를 골라 주는 체크리스트",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf8f3",
+  "theme_color": "#2f6fed",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

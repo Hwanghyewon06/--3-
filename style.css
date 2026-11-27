@@ -1,0 +1,110 @@
+:root{
+  --bg:#faf8f3; --card:#fff; --line:#cfcbc0; --text:#1d1d1b; --muted:#666;
+  --accent:#2f6fed; --accent-dk:#1d4fb8; --ok:#2e7d32; --warn:#b26a00; --bad:#b3261e;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  word-break:keep-all; overflow-wrap:break-word;   /* 한국어를 단어 중간에서 끊지 않음 */
+}
+.wrap{max-width:640px; margin:0 auto; padding:16px 16px 40px}
+h1{font-size:1.5rem; margin:8px 0 2px; line-height:1.25}
+h2{font-size:1.15rem; margin:22px 0 8px}
+.sub{margin:0 0 12px; color:var(--muted)}
+.sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+.noscript{background:#fde0dc; color:var(--bad); padding:12px; margin:0; text-align:center}
+[hidden]{display:none !important}
+
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px}
+.lbl,legend{font-weight:700; font-size:1rem}
+legend small{font-weight:400; color:var(--muted); font-size:.85rem; margin-left:6px}
+fieldset{border:0; padding:0; margin:12px 0 0}
+input[type=text]{
+  width:100%; margin:6px 0 0; padding:12px; font-size:1rem; /* 16px 이상: iOS 자동 확대 방지 */
+  border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--text);
+}
+input[type=text]:focus-visible,button:focus-visible,.seg input:focus-visible+span,.check input:focus-visible+.box{
+  outline:3px solid #9bbcff; outline-offset:2px;
+}
+.seg{display:flex; gap:6px; margin-top:6px}
+.seg label{flex:1}
+.seg input{position:absolute; opacity:0; width:1px; height:1px}
+.seg span{
+  display:flex; align-items:center; justify-content:center; min-height:48px; border-radius:10px;
+  background:#eeece5; font-weight:700; font-size:1.1rem; cursor:pointer; user-select:none;
+  border:2px solid transparent;
+}
+.seg input:checked+span{background:var(--accent); color:#fff}
+
+button{
+  font:inherit; min-height:48px; padding:0 16px; border:0; border-radius:10px; background:#e8e6e0;
+  color:var(--text); cursor:pointer; touch-action:manipulation;
+}
+button:active{filter:brightness(.92)}
+button.primary{background:var(--accent); color:#fff; font-weight:700}
+button.primary:active{background:var(--accent-dk)}
+form .primary{width:100%; margin-top:14px; font-size:1.05rem}
+
+.msg{min-height:1.4em; margin:10px 2px 0; font-size:.95rem; color:var(--muted)}
+.msg.ok{color:var(--ok)} .msg.warn{color:var(--warn)} .msg.bad{color:var(--bad)}
+.msg button{min-height:36px; margin-left:8px; padding:0 12px; font-size:.9rem}
+
+.progress{margin:4px 0 8px}
+.progress-text{font-weight:700; margin-bottom:6px}
+.bar{height:20px; border-radius:10px; background:#e4e1d8; overflow:hidden}
+.fill{height:100%; width:0; background:var(--accent); transition:width .35s ease}
+.fill.full{background:#43a047}
+.notice{margin:6px 2px 8px; color:var(--muted)}
+
+.task{
+  display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line);
+  border-radius:14px; padding:10px 10px 10px 12px; margin:8px 0;
+}
+.task.done{background:#f0efea}
+.task.done .title{text-decoration:line-through; color:#999}
+.task.pinned{border-color:#8f7be0}
+.check{position:relative; flex:none; width:44px; height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer}
+.check input{position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer}
+.box{width:28px; height:28px; border:2px solid #8a877d; border-radius:8px; background:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; color:#fff}
+.check input:checked+.box{background:var(--ok); border-color:var(--ok)}
+.check input:checked+.box::after{content:"✓"; font-weight:700}
+.body{flex:1; min-width:0}
+.badges{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:2px}
+.rank{font-weight:800; color:var(--accent); min-width:1.2em}
+.badge{font-size:.8rem; font-weight:700; padding:1px 8px; border-radius:999px}
+.b-urgent{background:#fde0dc; color:var(--bad)}
+.b-important{background:#fff1c9; color:#8a5a00}
+.b-must{background:#dce8ff; color:var(--accent-dk)}
+.b-pin{background:#e6e0f8; color:#4b3a99}
+.title{font-size:1.05rem; font-weight:700; overflow-wrap:anywhere}
+.why{font-size:.85rem; color:var(--muted)}
+.acts{display:flex; flex-direction:column; gap:6px; flex:none}
+.acts button{min-width:48px; min-height:44px; padding:0 8px; font-size:1rem}
+.acts button.on{background:#e6e0f8}
+
+.small{display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid #e2dfd6; border-radius:12px; padding:6px 8px 6px 12px; margin:6px 0}
+.small .score{font-weight:800; color:var(--muted); flex:none; min-width:2.6em}
+.small .body{display:block}
+.small .title{font-size:.98rem; font-weight:600}
+.small .why{font-size:.8rem}
+.small .acts{flex-direction:row}
+
+.empty{text-align:center; color:var(--muted); padding:24px 8px}
+.tools{display:flex; flex-wrap:wrap; gap:10px; margin-top:22px}
+.tools button{flex:1 1 140px}
+.tools button.confirm{background:var(--bad); color:#fff; font-weight:700}
+footer{margin-top:22px; color:var(--muted); font-size:.85rem; text-align:center}
+
+@media (min-width:640px){.wrap{padding-top:28px}}
+@media (prefers-reduced-motion:reduce){.fill{transition:none}}
+
+.quick{margin-top:12px}
+.quick-guide{margin:0 0 6px; font-weight:700; font-size:.95rem; color:var(--accent-dk)}
+.tags{display:flex; flex-wrap:wrap; gap:8px}
+.tags button{min-height:44px; padding:6px 12px; border-radius:999px; border:1px solid var(--line); background:#eef3ff; color:var(--accent-dk); font-size:.95rem; font-weight:600; word-break:keep-all}
+.tagbtn{width:100%; min-height:48px; margin-bottom:8px; border-radius:12px; border:2px solid var(--accent); background:#fff; color:var(--accent-dk); font-size:1rem; font-weight:700}
+.tagbtn[aria-expanded=true]{background:#eef3ff}
+.hint{margin:14px 2px 0; font-size:.9rem; color:var(--muted); word-break:keep-all}
