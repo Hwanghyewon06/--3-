@@ -108,3 +108,4 @@ footer{margin-top:22px; color:var(--muted); font-size:.85rem; text-align:center}
 .tagbtn{width:100%; min-height:48px; margin-bottom:8px; border-radius:12px; border:2px solid var(--accent); background:#fff; color:var(--accent-dk); font-size:1rem; font-weight:700}
 .tagbtn[aria-expanded=true]{background:#eef3ff}
 .hint{margin:14px 2px 0; font-size:.9rem; color:var(--muted); word-break:keep-all}
+.tags button.used{background:#e6efe6; border-color:#b9d3b9; color:#3d6b3d}

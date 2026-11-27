@@ -1,5 +1,5 @@
 /* 오프라인에서도 열리도록 파일을 기기에 저장해 두는 서비스 워커. 인터넷이 되면 항상 새 파일을 먼저 받는다. */
-var CACHE = "priority-picker-v7";
+var CACHE = "priority-picker-v9";
 var FILES = ["./", "index.html", "style.css", "engine.js", "app.js", "icon.svg", "manifest.webmanifest"];
 
 self.addEventListener("install", function (e) {

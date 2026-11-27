@@ -49,7 +49,7 @@
       if (this.tasks.length >= MAX_TASKS) return { ok: false, msg: "후보가 너무 많아요(" + MAX_TASKS + "개까지). 끝난 일을 정리해 주세요." };
       var f = fold(t);
       for (var k = 0; k < this.tasks.length; k++) {
-        if (fold(this.tasks[k].title) === f) return { ok: false, msg: "같은 이름의 할 일이 이미 있어요." };
+        if (fold(this.tasks[k].title) === f) return { ok: false, msg: "같은 이름의 할 일이 이미 있어요. 뒤에 숫자를 붙여 구분해 주세요 (예: " + t + " 2)" };
       }
       this.tasks.push({ id: this._nextId++, title: t, urgency: u, importance: i, done: false, pinned: false, seq: this._nextSeq++ });
       return { ok: true, msg: "" };

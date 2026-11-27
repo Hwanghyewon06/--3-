@@ -154,15 +154,15 @@
     var box = $("tags"), used = {};
     board.tasks.forEach(function (t) { used[E.cleanTitle(t.title).toLowerCase()] = true; });
     box.textContent = "";
-    QUICK_TAGS.forEach(function (name) {
-      if (used[name.toLowerCase()]) return;          // 이미 목록에 있는 태그는 숨김
-      var b = el("button", "", "#" + name);
+    QUICK_TAGS.forEach(function (name) {              // 태그는 사라지지 않고, 이미 목록에 있으면 ✓로 표시
+      var isUsed = !!used[name.toLowerCase()];
+      var b = el("button", isUsed ? "used" : "", (isUsed ? "✓ #" : "#") + name);
       b.type = "button";
       b.setAttribute("data-tag", name);
+      if (isUsed) b.setAttribute("aria-label", name + " (이미 목록에 있음, 누르면 번호를 붙여 한 번 더 추가)");
       box.appendChild(b);
     });
     $("quickGuide").hidden = board.tasks.length > 0;  // 안내 문구는 처음(할 일 0개)에만
-    if (!tagsTouched) setTags(board.tasks.length === 0);   // 처음(0개)엔 펼쳐 두고, 할 일이 생기면 접어 둠(버튼으로 언제든 열기)
   }
   var tagsTouched = false;
   function setTags(open) {
@@ -173,12 +173,22 @@
     tagsTouched = true;
     setTags($("tagPanel").hidden);
   });
+  function nameTaken(name) {
+    var f = E.cleanTitle(name).toLowerCase();
+    return board.tasks.some(function (t) { return E.cleanTitle(t.title).toLowerCase() === f; });
+  }
   var onTag = guarded(function (ev) {
     var n = ev.target.closest ? ev.target.closest("[data-tag]") : null;
     if (!n) return;
-    var input = $("title");
-    input.value = n.getAttribute("data-tag");
-    say("점수(긴급도·중요도)를 고르고 '＋ 추가'를 눌러 주세요.", "");
+    var input = $("title"), name = n.getAttribute("data-tag"), fill = name, k = 2;
+    if (nameTaken(name)) {                       // 이미 있는 태그면 뒤에 번호를 붙여 새 이름으로 채움(예: 기획안·보고서 초안 2)
+      while (nameTaken(name + " " + k)) k++;
+      fill = name + " " + k;
+      say("'" + name + "'이(가) 이미 있어서 '" + fill + "'로 채웠어요. 점수를 고르고 '＋ 추가'를 눌러 주세요.", "");
+    } else {
+      say("점수(긴급도·중요도)를 고르고 '＋ 추가'를 눌러 주세요.", "");
+    }
+    input.value = fill;
     input.focus();
   });
 
